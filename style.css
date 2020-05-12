@@ -6,7 +6,7 @@
 
 body {
   font-family: 'Roboto', sans-serif;
-  color: rgb(52, 52, 52);
+  color: #1a1717;
 }
 
 button {
@@ -23,7 +23,7 @@ svg {
 .colors {
   min-height: 80vh;
   display: flex;
-  color: rgb(245, 245, 245);
+  color: #fffafa;
 }
 
 .color {
@@ -47,7 +47,7 @@ svg {
   flex-direction: column;
   position: absolute;
   bottom: 0%;
-  background: white;
+  background: #fffafa;
   padding: 1rem;
   width: 80%;
   border-top-left-radius: 1rem;
@@ -72,8 +72,8 @@ svg {
   border: none;
   border-top-right-radius: 1rem;
   border-bottom-left-radius: 1rem;
-  color: white;
-  background: rgb(52, 52, 52);
+  color: #fffafa;
+  background: #1a1717;
   cursor: pointer;
   font-weight: bold;
 }
@@ -95,7 +95,7 @@ svg {
   margin: 1rem;
   padding: 1rem 1.5rem;
   background: #0d3b66;
-  color: white;
+  color: #fffafa;
   border: none;
   border-radius: 1rem;
   cursor: pointer;
