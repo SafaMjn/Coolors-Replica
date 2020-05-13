@@ -1,11 +1,13 @@
-//global variables
+//#region global variables
 const colorDivs = document.querySelectorAll('.color');
 const generateBtn = document.querySelector('.generate');
 const sliders = document.querySelectorAll('input[type="range"]');
-const textHex = document.querySelectorAll('.color h2');
+const hexTexts = document.querySelectorAll('.color h2');
+const popupContainer = document.querySelector('.copy-container');
 let initialColors;
 
-//event listeners
+//#endregion global variables
+//#region event listeners
 sliders.forEach((slider) => {
   slider.addEventListener('input', hslControls);
 });
@@ -17,11 +19,58 @@ colorDivs.forEach((div, index) => {
 });
 
 generateBtn.addEventListener('click', generateRandomColors);
-//color generator
+
+hexTexts.forEach((hexText) => {
+  hexText.addEventListener('click', () => {
+    copyToClipboard(hexText);
+  });
+});
+
+popupContainer.addEventListener('transitionend', () => {
+  const popup = popupContainer.children[0];
+  popupContainer.classList.remove('active');
+  popup.classList.remove('active');
+});
+//#endregion event listeners
+
+//calls
+generateRandomColors();
+
+//functions
+function checkTextContrast(color, text) {
+  const luminance = chroma(color).luminance();
+  text.style.color = luminance > 0.8 ? '#1a1717' : '#fffafa';
+}
+function updateTextUI(index) {
+  const activeDiv = colorDivs[index];
+  const color = chroma(activeDiv.style.backgroundColor);
+  const hexText = colorDivs[index].children[0];
+  //activeDiv.querySelector('h2');
+  const icons = activeDiv.querySelectorAll('.controls button');
+  hexText.innerText = color.hex();
+  checkTextContrast(color, hexText);
+  for (icon of icons) {
+    checkTextContrast(color, icon);
+  }
+}
+function copyToClipboard(hex) {
+  const el = document.createElement('textarea');
+  el.value = hex.innerText;
+  console.log(el.value);
+
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
+  //popup animation
+  const popup = popupContainer.children[0];
+  popupContainer.classList.add('active');
+  popup.classList.add('active');
+}
+//#region Color generation functions
 function generateHex() {
   return chroma.random();
 }
-
 function generateRandomColors() {
   initialColors = [];
   colorDivs.forEach((div, index) => {
@@ -52,12 +101,9 @@ function generateRandomColors() {
   //reset inputs
   resetInputs();
 }
+//#endregion Color generation functions
 
-function checkTextContrast(color, text) {
-  const luminance = chroma(color).luminance();
-  text.style.color = luminance > 0.8 ? '#1a1717' : '#fffafa';
-}
-
+//#region slider functions
 function colorSlider(color, hue, brightness, saturation) {
   //saturation
   [minSat, maxSat] = [color.set('hsl.s', 0), color.set('hsl.s', 1)];
@@ -100,18 +146,6 @@ function hslControls(e) {
   colorSlider(color, hue, brightness, saturation);
 }
 
-function updateTextUI(index) {
-  const activeDiv = colorDivs[index];
-  const color = chroma(activeDiv.style.backgroundColor);
-  const textHex = activeDiv.querySelector('h2');
-  const icons = activeDiv.querySelectorAll('.controls button');
-  textHex.innerText = color.hex();
-  checkTextContrast(color, textHex);
-  for (icon of icons) {
-    checkTextContrast(color, icon);
-  }
-}
-
 function resetInputs() {
   sliders.forEach((slider) => {
     if (slider.classList.value === 'hue-input') {
@@ -131,4 +165,4 @@ function resetInputs() {
     }
   });
 }
-generateRandomColors();
+//#endregion slider functions
