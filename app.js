@@ -10,6 +10,14 @@ const closeAdjustBtns = document.querySelectorAll('.close-adjustment');
 const sliderContainers = document.querySelectorAll('.sliders');
 let initialColors;
 
+//local storage
+let savedPalettes = [];
+const saveBtn = document.querySelector('.save');
+const submitSaveBtn = document.querySelector('.submit-save');
+const closeSaveBtn = document.querySelector('.close-save');
+const saveContainer = document.querySelector('.save-container');
+const saveInput = document.querySelector('.save-container input');
+
 //#endregion global variables
 //#region event listeners
 sliders.forEach((slider) => {
@@ -52,6 +60,12 @@ lockBtns.forEach((button, index) => {
     lockLayer(e, index);
   });
 });
+
+//local storage
+saveBtn.addEventListener('click', openPalette);
+closeSaveBtn.addEventListener('click', closePalette);
+submitSaveBtn.addEventListener('click', savePalette);
+
 //#endregion event listeners
 
 //calls
@@ -211,3 +225,42 @@ function closeAdjustmentPanel(index) {
   sliderContainers[index].classList.remove('active');
 }
 //#endregion slider functions
+
+//#region palette functions
+function openPalette(e) {
+  saveContainer.classList.add('active');
+  saveContainer.children[0].classList.add('active');
+}
+function closePalette(e) {
+  saveContainer.classList.remove('active');
+  saveContainer.children[0].classList.remove('active');
+}
+
+function savePalette(e) {
+  saveContainer.classList.remove('active');
+  saveContainer.children[0].classList.remove('active');
+  const name = saveInput.value;
+  const colors = [];
+  hexTexts.forEach((hex) => {
+    colors.push(hex.innerText);
+  });
+  //generate palette object
+  let paletteNb = savedPalettes.length;
+  const paletteObj = { name, colors, nb: paletteNb };
+  savedPalettes.push(paletteObj);
+  //save to local storage
+  savetoLocal(paletteObj);
+  saveInput.value = '';
+}
+
+function savetoLocal(paletteObj) {
+  let localPalettes;
+  if (localStorage.getItem('palettes') === null) {
+    localPalettes = [];
+  } else {
+    localPalettes = JSON.parse(localStorage.getItem('palettes'));
+  }
+  localPalettes.push(paletteObj);
+  localStorage.setItem('palettes', JSON.stringify(localPalettes));
+}
+//#endregion palette functions
