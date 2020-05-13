@@ -4,6 +4,10 @@ const generateBtn = document.querySelector('.generate');
 const sliders = document.querySelectorAll('input[type="range"]');
 const hexTexts = document.querySelectorAll('.color h2');
 const popupContainer = document.querySelector('.copy-container');
+const adjustBtns = document.querySelectorAll('.adjust');
+const lockBtns = document.querySelectorAll('.lock');
+const closeAdjustBtns = document.querySelectorAll('.close-adjustment');
+const sliderContainers = document.querySelectorAll('.sliders');
 let initialColors;
 
 //#endregion global variables
@@ -31,6 +35,23 @@ popupContainer.addEventListener('transitionend', () => {
   popupContainer.classList.remove('active');
   popup.classList.remove('active');
 });
+
+adjustBtns.forEach((btn, index) => {
+  btn.addEventListener('click', () => {
+    toggleAdjustmentPanel(index);
+  });
+});
+closeAdjustBtns.forEach((btn, index) => {
+  btn.addEventListener('click', () => {
+    closeAdjustmentPanel(index);
+  });
+});
+
+lockBtns.forEach((button, index) => {
+  button.addEventListener('click', (e) => {
+    lockLayer(e, index);
+  });
+});
 //#endregion event listeners
 
 //calls
@@ -39,19 +60,18 @@ generateRandomColors();
 //functions
 function checkTextContrast(color, text) {
   const luminance = chroma(color).luminance();
-  text.style.color = luminance > 0.8 ? '#1a1717' : '#fffafa';
+  text.style.color = luminance > 0.75 ? '#1a1717' : '#fffafa';
 }
 function updateTextUI(index) {
   const activeDiv = colorDivs[index];
   const color = chroma(activeDiv.style.backgroundColor);
   const hexText = colorDivs[index].children[0];
   //activeDiv.querySelector('h2');
-  const icons = activeDiv.querySelectorAll('.controls button');
+  //const icons = activeDiv.querySelectorAll('.controls button');
   hexText.innerText = color.hex();
   checkTextContrast(color, hexText);
-  for (icon of icons) {
-    checkTextContrast(color, icon);
-  }
+  checkTextContrast(color, adjustBtns[index]);
+  checkTextContrast(color, lockBtns[index]);
 }
 function copyToClipboard(hex) {
   const el = document.createElement('textarea');
@@ -67,26 +87,37 @@ function copyToClipboard(hex) {
   popupContainer.classList.add('active');
   popup.classList.add('active');
 }
+function lockLayer(e, index) {
+  const lockIcon = e.target.children[0];
+  const currentBg = colorDivs[index];
+
+  currentBg.classList.toggle('locked');
+  lockIcon.classList.toggle('fa-lock');
+  lockIcon.classList.toggle('fa-lock-open');
+}
 //#region Color generation functions
 function generateHex() {
   return chroma.random();
 }
 function generateRandomColors() {
   initialColors = [];
+
   colorDivs.forEach((div, index) => {
     const hexText = div.children[0];
     const randomColor = generateHex();
-
-    initialColors.push(randomColor.hex());
+    //add new color to array
+    if (div.classList.contains('locked')) {
+      initialColors.push(hexText.innerText);
+      return;
+    } else {
+      initialColors.push(randomColor.hex());
+    }
     //add color to bg
     div.style.backgroundColor = randomColor;
     hexText.innerText = randomColor;
-    //check contrast with text and icons
+
+    //check contrast with text
     checkTextContrast(randomColor, hexText);
-    const icons = div.querySelectorAll('.controls button');
-    for (icon of icons) {
-      checkTextContrast(randomColor, icon);
-    }
 
     //set slider values to picked color properties
     const color = chroma(randomColor);
@@ -100,6 +131,13 @@ function generateRandomColors() {
 
   //reset inputs
   resetInputs();
+  //check contrast in adjust buttons and lock buttons
+  adjustBtns.forEach((btn, index) => {
+    checkTextContrast(initialColors[index], btn);
+  });
+  lockBtns.forEach((button, index) => {
+    checkTextContrast(initialColors[index], button);
+  });
 }
 //#endregion Color generation functions
 
@@ -164,5 +202,12 @@ function resetInputs() {
       slider.value = Math.floor(brightValue * 100) / 100;
     }
   });
+}
+
+function toggleAdjustmentPanel(index) {
+  sliderContainers[index].classList.toggle('active');
+}
+function closeAdjustmentPanel(index) {
+  sliderContainers[index].classList.remove('active');
 }
 //#endregion slider functions
