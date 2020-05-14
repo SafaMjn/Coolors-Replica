@@ -17,6 +17,9 @@ const submitSaveBtn = document.querySelector('.submit-save');
 const closeSaveBtn = document.querySelector('.close-save');
 const saveContainer = document.querySelector('.save-container');
 const saveInput = document.querySelector('.save-container input');
+const libraryContainer = document.querySelector('.library-container');
+const libraryBtn = document.querySelector('.library');
+const closeLibraryBtn = document.querySelector('.close-library');
 
 //#endregion global variables
 //#region event listeners
@@ -64,11 +67,16 @@ lockBtns.forEach((button, index) => {
 //local storage
 saveBtn.addEventListener('click', openPalette);
 closeSaveBtn.addEventListener('click', closePalette);
+
 submitSaveBtn.addEventListener('click', savePalette);
+
+libraryBtn.addEventListener('click', openLibrary);
+closeLibraryBtn.addEventListener('click', closeLibrary);
 
 //#endregion event listeners
 
 //calls
+getLocal();
 generateRandomColors();
 
 //functions
@@ -235,7 +243,62 @@ function closePalette(e) {
   saveContainer.classList.remove('active');
   saveContainer.children[0].classList.remove('active');
 }
+function openLibrary(e) {
+  libraryContainer.classList.add('active');
+  libraryContainer.children[0].classList.add('active');
+}
+function closeLibrary(e) {
+  libraryContainer.classList.remove('active');
+  libraryContainer.children[0].classList.remove('active');
+}
+function generateLibraryPalette(paletteObj) {
+  const palette = document.createElement('div');
+  palette.classList.add('custom-palette');
+  const title = document.createElement('h4');
+  title.innerHTML = paletteObj.name;
+  const preview = document.createElement('div');
+  preview.classList.add('small-preview');
+  paletteObj.colors.forEach((color) => {
+    const colorDiv = document.createElement('div');
+    colorDiv.style.background = color;
+    preview.appendChild(colorDiv);
+  });
+  const paletteBtn = document.createElement('button');
+  paletteBtn.classList.add('pick-palette-btn');
+  paletteBtn.classList.add(paletteObj.nb);
+  paletteBtn.innerText = 'Select';
 
+  //attach event to btn
+  paletteBtn.addEventListener('click', (e) => {
+    closeLibrary();
+    const paletteIndex = e.target.classList[1];
+    initialColors = [];
+    savedPalettes[paletteIndex].colors.forEach((color, index) => {
+      initialColors.push(color);
+      colorDivs[index].style.backgroundColor = color;
+      const text = colorDivs[index].children[0];
+      checkTextContrast(color, text);
+      updateTextUI(index);
+    });
+    //reset sliders
+    resetInputs();
+    colorDivs.forEach((div, index) => {
+      const color = chroma(div.children[0].innerText);
+      const sliders = div.querySelectorAll('.sliders input');
+      const hue = sliders[0];
+      const brightness = sliders[1];
+      const saturation = sliders[2];
+
+      colorSlider(color, hue, brightness, saturation);
+    });
+  });
+
+  //append to library
+  palette.appendChild(title);
+  palette.appendChild(preview);
+  palette.appendChild(paletteBtn);
+  libraryContainer.children[0].appendChild(palette);
+}
 function savePalette(e) {
   saveContainer.classList.remove('active');
   saveContainer.children[0].classList.remove('active');
@@ -244,6 +307,7 @@ function savePalette(e) {
   hexTexts.forEach((hex) => {
     colors.push(hex.innerText);
   });
+
   //generate palette object
   let paletteNb = savedPalettes.length;
   const paletteObj = { name, colors, nb: paletteNb };
@@ -251,6 +315,8 @@ function savePalette(e) {
   //save to local storage
   savetoLocal(paletteObj);
   saveInput.value = '';
+  //generate the palette for library
+  generateLibraryPalette(paletteObj);
 }
 
 function savetoLocal(paletteObj) {
@@ -262,5 +328,21 @@ function savetoLocal(paletteObj) {
   }
   localPalettes.push(paletteObj);
   localStorage.setItem('palettes', JSON.stringify(localPalettes));
+}
+
+function getLocal() {
+  if (localStorage.getItem('palettes') === null) {
+    //Local Palettes
+    localPalettes = [];
+  } else {
+    const paletteObjects = JSON.parse(localStorage.getItem('palettes'));
+    // *2
+
+    savedPalettes = [...paletteObjects];
+    paletteObjects.forEach((paletteObj) => {
+      //Generate the palette for Library
+      generateLibraryPalette(paletteObj);
+    });
+  }
 }
 //#endregion palette functions
